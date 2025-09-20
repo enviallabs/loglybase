@@ -1,0 +1,67 @@
+services:
+  app:
+    build: .
+    restart: always
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+
+      - SSL_PREFIX=${SSL_PREFIX}
+      - BASE_URL=${BASE_URL}
+
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_SENDER=${EMAIL_SENDER}
+
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT}
+      - STORAGE_BUCKET=${STORAGE_BUCKET}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ../traefik/custom_domains.toml:/etc/traefik/custom_domains.toml
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.app.rule=Host(`example.com`) || HostRegexp(`^[a-z0-9-]+\.example\.com$`)
+      - traefik.http.routers.app.entrypoints=https
+      - traefik.http.routers.app.tls=true
+      - traefik.http.routers.app.tls.certresolver=myresolver
+      - traefik.http.routers.app.tls.domains[0].main=example.com
+      - traefik.http.routers.app.tls.domains[0].sans=*.example.com
+      - traefik.http.routers.app.service=app
+
+      - traefik.http.services.app.loadbalancer.server.port=3000
+    networks:
+      - traefik
+
+  database:
+    image: postgres:16-alpine
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=${PGUSER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./.loglybase/database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${PGUSER}", "-d", "${POSTGRES_DB}"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true

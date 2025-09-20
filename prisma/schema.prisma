@@ -1,0 +1,162 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id
+  name                String
+  email               String
+  emailVerified       Boolean
+  image               String?
+  createdAt           DateTime
+  updatedAt           DateTime
+  sessions            Session[]
+  accounts            Account[]
+  projects            Project[]
+  posts               Post[]
+  onboardingCompleted Boolean   @default(false)
+  apiKeys             Apikey[]
+  noBranding          Boolean   @default(true)
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Apikey {
+  id                  String    @id
+  name                String?
+  start               String?
+  prefix              String?
+  key                 String
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refillInterval      Int?
+  refillAmount        Int?
+  lastRefillAt        DateTime?
+  enabled             Boolean
+  rateLimitEnabled    Boolean
+  rateLimitTimeWindow Int?
+  rateLimitMax        Int?
+  requestCount        Int
+  remaining           Int?
+  lastRequest         DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime
+  updatedAt           DateTime
+  permissions         String?
+  metadata            Json?
+
+  @@map("apikey")
+}
+
+model Project {
+  id           Int      @id     @default(autoincrement())
+  code         String   @unique
+  slug         String   @unique
+  name         String   @unique
+  description  String?
+  logo         String?
+  posts        Post[]
+  customDomain String?
+  meta         Json?
+  theme        Theme    @default(LIGHT)
+  primaryColor String?
+  fontFamily   String?  @default("inter")
+  fontSize     FontSize @default(SMALL)
+  customCss    String?
+  userId       String
+  createdBy    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("project")
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  code        String     @unique
+  title       String
+  status      PostStatus @default(DRAFT)
+  content     Json?
+  meta        Json       @default("{}")
+  projectCode String
+  project     Project    @relation(fields: [projectCode], references: [code], onDelete: Cascade)
+  userId      String
+  createdBy   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  publishedAt DateTime?
+
+  @@index([projectCode])
+  @@index([userId])
+  @@map("post")
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum FontSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
