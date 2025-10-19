@@ -48,7 +48,7 @@
           </div>
           
           <div class="flex items-center space-x-3">
-            <div class="flex items-center bg-neutral-100 border border-neutral-200 p-2.5 rounded-md">
+            <div class="flex items-center bg-neutral-800 border border-neutral-700 text-white p-2.5 rounded-md">
               <UIcon name="i-hugeicons-dashboard-square-add" class="text-xl" />
             </div>
 

@@ -135,6 +135,11 @@
         label: 'Docs',
         icon: 'i-hugeicons-book-open-01',
         to: 'https://docs.loglybase.com'
+      },
+      {
+        label: 'Github',
+        icon: 'i-hugeicons-github',
+        to: 'https://github.com/enviallabs/loglybase'
       }
     ],
     [
