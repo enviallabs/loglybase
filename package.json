@@ -107,5 +107,10 @@
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
     "eslint-plugin-prettier": "^5.2.6"
+  },
+  "overrides": {
+    "@vue/devtools-applet": "^8.0.3",
+    "@vue/devtools-core": "^8.0.3",
+    "@vue/devtools-kit": "^8.0.3"
   }
 }
